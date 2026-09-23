@@ -47,10 +47,10 @@ The tool would:
 * Provide an LSP for autocomplete, hover documentation, diagnostics, and quick fixes.
 * Expose a CLI suitable for local development and CI.
 
-Example:
+Planned CLI example (not implemented yet):
 
 ```text
-$ pyproject check
+$ ppinspect check
 
 tool.ruff.line-lenght
                  ^^^^^

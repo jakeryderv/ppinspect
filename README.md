@@ -1,75 +1,38 @@
 # ppinspect
 
-Inspect, validate, lint, and understand `pyproject.toml` with version-aware
-analysis and editor tooling — the intended purpose of this project.
+Version-aware analysis and editor tooling for `pyproject.toml`.
 
-**Version 0.1.0 is a development stub.** The package is importable, but no
-inspection, validation, linting, editor integration, or command-line interface
-is implemented yet. It has no runtime dependencies.
+Python project configuration brings together packaging standards and settings for
+tools that evolve independently. ppinspect aims to help you understand whether
+that configuration is valid for the versions your project actually uses.
 
-## Development
+## Planned capabilities
 
-Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/getting-started/installation/).
-CI uses uv 0.12.18. The development interpreter is set to Python 3.11 in
-`.python-version`.
+- Validate Python/PyPA sections and tool-specific configuration.
+- Detect unknown settings, deprecated options, and conflicting configuration
+  with useful diagnostics and suggested fixes.
+- Provide formatting, a `ppinspect` CLI, and language-server features such as
+  completion, hover documentation, and quick fixes.
 
-```sh
-git clone https://github.com/jakeryderv/ppinspect.git
-cd ppinspect
-uv sync --locked
-```
+ppinspect is intended to complement tools like uv, Ruff, and ty—not replace
+package management, Python source linting, or type checking.
 
-### Validation and build
+## Current status
 
-There is no functional API to test yet. Validate the lockfile, import, and
-installed version, then build the wheel and source distribution:
+**[Version 0.1.0](https://pypi.org/project/ppinspect/0.1.0/) is a development
+stub.** The package is importable and has no runtime dependencies, but the
+capabilities above—including the CLI—are not implemented yet.
 
-```sh
-uv lock --check
-uv run --locked python -c 'import ppinspect; from importlib.metadata import version; assert version("ppinspect") == "0.1.0"'
-uv build
-```
+## Learn more and contribute
 
-To smoke-test the built wheel in a separate environment without importing the
-source checkout (POSIX shell):
-
-```sh
-check_dir=$(mktemp -d)
-uv venv --python 3.11 "$check_dir/venv"
-uv pip install --python "$check_dir/venv/bin/python" --no-deps dist/ppinspect-0.1.0-py3-none-any.whl
-"$check_dir/venv/bin/python" -I -c 'import ppinspect; from importlib.metadata import version; assert version("ppinspect") == "0.1.0"; print(ppinspect.__file__)'
-rm -rf "$check_dir"
-```
-
-Generated artifacts are in `dist/` and must not be committed. Inspect both
-archives and their metadata before release; they should contain the stub,
-MIT license, and accurate package description, not local state or credentials.
-
-## Publishing
-
-The production PyPI target is [`ppinspect`](https://pypi.org/project/ppinspect/).
-[The release workflow](.github/workflows/publish.yml) uses PyPI Trusted Publishing
-with this identity:
-
-- GitHub repository: [`jakeryderv/ppinspect`](https://github.com/jakeryderv/ppinspect)
-- Workflow filename: `publish.yml`
-- GitHub environment: `pypi`
-
-Pushing the exact tag `v0.1.0` triggers the initial release. The workflow checks
-that the tag matches the package version, validates the lockfile and import,
-builds distributions with `uv build --no-sources`, checks metadata with
-`uvx --from twine==7.0.0 twine check --strict dist/*`, and independently installs
-and imports both the wheel and source distribution before uploading artifacts.
-
-A separate job publishes those same artifacts using
-`uv publish --trusted-publishing always` and GitHub OIDC, without a stored PyPI
-token. It uses the `pypi` environment and respects its configured protections;
-an environment name alone does not require approval. There is no manual trigger
-or trigger for other tags. Review the workflow before enabling future releases.
-
-Check the Actions run and PyPI project to confirm publication. Publishing a stub
-does not guarantee ownership or permanent reservation of a PyPI project name.
+- [Project vision](https://github.com/jakeryderv/ppinspect/blob/main/docs/vision.md):
+  intended capabilities, inspiration, and scope.
+- [Contributing](https://github.com/jakeryderv/ppinspect/blob/main/CONTRIBUTING.md):
+  development setup, validation, and proposing changes.
+- [Publishing guide](https://github.com/jakeryderv/ppinspect/blob/main/docs/publishing.md):
+  maintainer release instructions and current automation limits.
 
 ## License
 
-[MIT](LICENSE), copyright 2026 Jake Van Slyke.
+[MIT](https://github.com/jakeryderv/ppinspect/blob/main/LICENSE), copyright 2026
+Jake Van Slyke.
