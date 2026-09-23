@@ -1,0 +1,13 @@
+# Python environments and generated artifacts
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Local agent state and credentials
+.pi/
+.env
+.env.*
+.pypirc
