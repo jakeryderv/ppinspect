@@ -1,8 +1,20 @@
-## `ppinspect`: pyproject.toml Analyzer / Language Server
+## `ppinspect`: Intelligence for pyproject.toml
 
-### Idea
+### Identity
 
-Build a developer tool that **validates, lints, formats, and provides editor intelligence for `pyproject.toml`**, understanding both official Python standards and tool-specific configuration.
+> **Version-aware intelligence for `pyproject.toml`—check, explain, and safely evolve your Python configuration.**
+
+ppinspect aims to be a **toolkit for understanding and safely maintaining
+`pyproject.toml`**, with analysis as its foundation. It should understand both
+official Python standards and tool-specific configuration, explain problems in
+context, and help people make deliberate improvements.
+
+The boundary is the configuration file, not the entire Python project. Helping
+express dependency requirements correctly does not mean resolving dependencies;
+configuring build tools does not mean becoming a build system.
+
+This document describes the intended direction, not implemented functionality.
+Version 0.1.0 is an importable development stub; there is no analyzer or CLI yet.
 
 Think:
 
@@ -31,7 +43,24 @@ Knowing whether a configuration is valid often requires consulting multiple docu
 
 The inspiration is the experience provided by tools like Ruff and ty: fast diagnostics, useful errors, autofixes, and strong editor integration.
 
-### Core functionality
+### Progression: understand → improve → author
+
+1. **Understand:** parse, validate, explain, and diagnose configuration in the
+   context of the project's tool versions.
+2. **Improve:** offer formatting, useful fixes, and eventually migrations where
+   the intended change can be established safely.
+3. **Author:** explore guided editing and configuration generation using the same
+   knowledge, when concrete workflows justify them.
+
+This is a direction, not a commitment to implement every authoring feature.
+Generation requires explicit choices and defaults; schemas alone cannot determine
+what a project should configure.
+
+The first slice remains deliberately narrow: `ppinspect check` parses one file,
+reports TOML syntax errors with useful locations, and returns clear exit codes.
+Schemas, version detection, formatting, edits, and LSP support come later.
+
+### Analysis-first foundation
 
 The tool would:
 
@@ -60,7 +89,7 @@ Did you mean `line-length`?
 Configured Ruff: 0.x
 ```
 
-### In scope
+### Planned scope
 
 ```text
 ✓ TOML parsing
@@ -76,6 +105,29 @@ Configured Ruff: 0.x
 ✓ CI usage
 ```
 
+### Possible later directions
+
+- Guided configuration edits with validation and explanations.
+- Migrations away from deprecated settings or between supported tool versions.
+- Generating configuration from explicit project requirements and selected tools.
+
+These are opportunities enabled by the analysis core, not promised features.
+Their scope should follow actual user needs rather than expand into general
+Python project management.
+
+### What safe maintenance means
+
+- Analysis is read-only; changes require an explicit editing or formatting action.
+- Changes are reviewable, with a clear explanation of their purpose.
+- Targeted edits preserve comments and unrelated settings, and keep diffs small.
+- Formatting preserves meaning and comments; it is a distinct, explicit operation.
+- Ambiguity is surfaced for a decision, not silently resolved by guessing.
+- Version-specific advice distinguishes detected facts, assumptions, and unknowns.
+
+Understanding configuration is not enough to edit it safely. Editing features
+will need an appropriate comment-preserving representation and validation of the
+proposed result; the initial parser choice does not settle that architecture.
+
 ### Out of scope
 
 ```text
@@ -87,5 +139,7 @@ Configured Ruff: 0.x
 ✗ replacing the tools being configured
 ```
 
-The goal is specifically to become the **static analyzer and language tooling for `pyproject.toml`**, complementing tools like uv, Ruff, and ty rather than replacing them.
+The goal is **version-aware intelligence for understanding and safely maintaining
+`pyproject.toml`**, delivered through analysis, a CLI, and editor tooling. It
+complements tools like uv, Ruff, and ty rather than replacing them.
 
