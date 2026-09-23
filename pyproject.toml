@@ -1,7 +1,7 @@
 [project]
 name = "ppinspect"
 version = "0.1.0"
-description = "Development stub for planned version-aware pyproject.toml analysis and editor tooling"
+description = "Development stub for planned version-aware pyproject.toml intelligence and safe maintenance"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
