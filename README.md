@@ -1,5 +1,9 @@
 # ppinspect
 
+> [!IMPORTANT]
+> **ppinspect has moved to [pyprojx](https://github.com/jakeryderv/pyprojx).**
+> This repository is archived and will not receive further updates.
+
 Version-aware intelligence for `pyproject.toml`—check, explain, and safely evolve
 your Python configuration.
 
