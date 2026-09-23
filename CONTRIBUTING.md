@@ -2,7 +2,7 @@
 
 ppinspect is at the development-stub stage. Start with the
 [project vision](docs/vision.md) for its intended scope; planned features are not
-yet implemented.
+yet implemented. The planned top-level command is `ppinspect`; there is no CLI yet.
 
 ## Proposing changes
 
@@ -13,53 +13,103 @@ pull request.
 
 Keep changes focused, describe what changed and why, and include the checks you
 ran in your pull request. Add meaningful tests when introducing executable
-behavior, and keep documentation clear about what exists versus what is planned.
-The planned top-level command is `ppinspect`; there is no CLI yet.
+behavior, and distinguish implemented features from plans in documentation.
 
 ## Development setup
 
 Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/getting-started/installation/).
-The publishing workflow uses uv 0.12.18. The development interpreter is set to
-Python 3.11 in `.python-version`.
+Workflows use uv 0.12.18. `.python-version` selects Python 3.11 for development;
+CI tests Python 3.11, 3.12, 3.13, and 3.14.
 
 ```sh
 git clone https://github.com/jakeryderv/ppinspect.git
 cd ppinspect
 uv sync --locked
+uv run --locked pre-commit install
 ```
 
-The package source lives in `src/ppinspect/`.
+The package lives in `src/ppinspect/`, and tests live in `tests/`. Development
+tools are in the `dev` dependency group and locked in `uv.lock`; do not install
+separate tool versions to work on this repository.
 
-## Validation and build
+## Local checks
 
-There is no functional API or test suite yet. From the repository root, validate
-the lockfile, import, and installed version, then build the wheel and source
-distribution:
+Run these from the repository root:
 
 ```sh
-uv lock --check
-uv run --locked python -c 'import ppinspect; from importlib.metadata import version; assert version("ppinspect") == "0.1.0"'
-uv build
+uv run --locked ruff check .
+uv run --locked ruff format --check .
+uv run --locked ty check
+uv run --locked pytest
+uv run --locked pre-commit validate-config
+uv build --no-sources
+uvx --from twine==7.0.0 twine check --strict dist/*
 ```
 
-To smoke-test the built wheel in a separate environment without importing the
-source checkout (POSIX shell):
+`uv sync --locked` fails if `pyproject.toml` and `uv.lock` disagree. Use
+`uv add --dev <tool>` for intentional development dependency changes and commit
+both files. Run `uv lock` after other changes that affect dependency resolution.
+
+Pre-commit runs only Ruff lint/fixes and formatting on staged Python files,
+using the uv-locked versions. If it changes files, review and stage the fixes
+before committing again. To check all tracked files:
 
 ```sh
-check_dir=$(mktemp -d)
-uv venv --python 3.11 "$check_dir/venv"
-uv pip install --python "$check_dir/venv/bin/python" --no-deps dist/ppinspect-0.1.0-py3-none-any.whl
-"$check_dir/venv/bin/python" -I -c 'import ppinspect; from importlib.metadata import version; assert version("ppinspect") == "0.1.0"; print(ppinspect.__file__)'
-rm -rf "$check_dir"
+uv run --locked pre-commit run --all-files
 ```
 
-These examples target the current version, `0.1.0`. Update version-specific
-checks and artifact paths when the package version changes.
+Type checks and tests are deliberately not commit hooks; run them locally before
+pushing. The current tests cover installed package metadata and the typing marker,
+not the planned analyzer or CLI.
 
-Generated artifacts are in `dist/` and must not be committed. Keep virtual
-environments, credentials, and local agent state out of commits as well.
+### Check built distributions
 
-The current publishing workflow validates release artifacts; it does not run on
-ordinary pushes or pull requests. Run the checks above locally for your changes.
-See the [publishing guide](docs/publishing.md) for release-specific validation
-and trusted-publisher configuration.
+Start with a clean `dist/` directory so old releases are not tested accidentally.
+After building, smoke-test both the wheel and source distribution in isolated
+environments (POSIX shell):
+
+```sh
+EXPECTED_VERSION="$(uv version --short)"
+export EXPECTED_VERSION
+for artifact in dist/*.whl dist/*.tar.gz; do
+  uv run --isolated --no-project --with "$artifact" \
+    python -I -c \
+    'import os, ppinspect; from importlib.metadata import version; from importlib.resources import files; assert version("ppinspect") == os.environ["EXPECTED_VERSION"]; assert files(ppinspect).joinpath("py.typed").is_file(); print(ppinspect.__file__)'
+done
+```
+
+CI runs the same checks on pull requests and pushes to `main`. Its stable `CI`
+status requires quality checks, all supported Python test jobs, and distribution
+validation to pass. Generated artifacts, virtual environments, credentials, and
+local agent state must not be committed.
+
+## Pull requests and commits
+
+Use a [Conventional Commit](https://www.conventionalcommits.org/) PR title:
+
+- `feat: validate project metadata`
+- `fix: handle an empty configuration`
+- `docs: clarify configuration support`
+- `chore(deps): update development dependencies`
+
+Allowed types are `feat`, `fix`, `perf`, `refactor`, `docs`, `style`, `test`,
+`build`, `ci`, `chore`, and `revert`. An optional scope and `!` for a breaking
+change are supported, for example `feat(cli)!: change diagnostic output`.
+Explain breaking changes in the PR description as well.
+
+PRs are squash-merged using the PR title as the commit subject. Individual
+work-in-progress commits do not need conventional titles. Before merging, the
+`CI` and `PR title` checks must pass; no additional reviewer is required for the
+solo-maintainer workflow. Admin bypass is disabled. Keep the branch up to date
+with `main` before merging.
+
+Dependabot checks uv dependencies and GitHub Actions weekly, grouping development
+dependencies and action updates separately, with a seven-day cooldown for new
+versions. Review its changes and let CI validate them rather than automatically
+merging them.
+
+## Releases
+
+Release Please proposes version and changelog updates; merging a reviewed release
+PR authorizes publication. See the [publishing guide](docs/publishing.md) for the
+versioning policy, GitHub App setup, and failure recovery.
